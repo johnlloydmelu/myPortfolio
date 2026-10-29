@@ -255,7 +255,7 @@ on conflict (slug) do update set
   published = excluded.published,
   sort_order = excluded.sort_order;
 
-delete from public.skills where name in ('Tailwind CSS', 'Vercel');
+delete from public.skills where name in ('Tailwind CSS', 'Vercel', 'Node.js');
 
 insert into public.skills (name, category, level, icon, published, sort_order)
 values
@@ -269,7 +269,6 @@ values
   ('React',             'Frontend',        88, 'react', true, 1),
   ('CSS Frameworks',    'Frontend',        85, '', true, 2),
   ('HTML & CSS',        'Frontend',        92, 'html5', true, 3),
-  ('Node.js',           'Backend',         78, 'local:node-js.png', true, 0),
   ('PostgreSQL',        'Backend',         80, 'postgresql', true, 1),
   ('Supabase',          'Backend',         82, 'supabase', true, 2),
   ('REST APIs',         'Backend',         85, '', true, 3),
