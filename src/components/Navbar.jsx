@@ -5,7 +5,7 @@ import { MenuIcon, CloseIcon } from './Icons.jsx'
 const links = [
   { href: '#about', label: 'About' },
   { href: '#skills', label: 'Tech Stack' },
-  { href: '#projects', label: 'Projects' },
+  { href: '#projects', label: 'Previous Projects' },
   { href: '#contact', label: 'Contacts' },
 ]
 

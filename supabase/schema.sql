@@ -1,8 +1,7 @@
 -- =====================================================================
 -- IT Portfolio schema: projects + skills
--- Public visitors can READ published rows only. Nobody can write via the
--- public API. You manage content in the Supabase Table Editor (which uses
--- a privileged role) or the SQL editor.
+-- Public visitors can READ published rows only. The portfolio admin account
+-- can manage projects, skills, settings, and uploaded portrait assets.
 -- =====================================================================
 
 create extension if not exists "pgcrypto";
@@ -18,6 +17,10 @@ create table if not exists public.projects (
   description text check (description is null or char_length(description) <= 4000),
   tech_stack  text[] not null default '{}',
   github_url  text check (github_url is null or github_url ~* '^https://'),
+  github_label text,
+  project_type text,
+  website_code_url text check (website_code_url is null or website_code_url ~* '^https://'),
+  mobile_code_url text check (mobile_code_url is null or mobile_code_url ~* '^https://'),
   live_url    text check (live_url   is null or live_url   ~* '^https://'),
   image_url   text check (image_url  is null or image_url  ~* '^https://'),
   featured    boolean not null default false,
@@ -27,16 +30,44 @@ create table if not exists public.projects (
   updated_at  timestamptz not null default now()
 );
 
+alter table public.projects
+  add column if not exists github_label text,
+  add column if not exists project_type text,
+  add column if not exists website_code_url text check (website_code_url is null or website_code_url ~* '^https://'),
+  add column if not exists mobile_code_url text check (mobile_code_url is null or mobile_code_url ~* '^https://');
+
 create table if not exists public.skills (
   id          uuid primary key default gen_random_uuid(),
   name        text not null unique check (char_length(name) between 1 and 60),
   category    text not null check (char_length(category) between 1 and 60),
   level       integer not null default 50 check (level between 0 and 100),
+  icon        text,
+  image_url   text check (image_url is null or image_url ~* '^https://'),
   published   boolean not null default true,
   sort_order  integer not null default 0,
   created_at  timestamptz not null default now(),
   updated_at  timestamptz not null default now()
 );
+
+alter table public.skills
+  add column if not exists icon text,
+  add column if not exists image_url text check (image_url is null or image_url ~* '^https://');
+
+create table if not exists public.site_settings (
+  id boolean primary key default true check (id = true),
+  portrait_url text not null default '/john-lloyd-melu.png'
+);
+
+create table if not exists public.admin_login_attempts (
+  attempt_key text primary key,
+  attempts integer not null default 0 check (attempts between 0 and 2),
+  locked_until timestamptz,
+  updated_at timestamptz not null default now()
+);
+
+insert into public.site_settings (id, portrait_url)
+values (true, '/john-lloyd-melu.png')
+on conflict (id) do nothing;
 
 create index if not exists projects_published_sort_idx
   on public.projects (published, sort_order);
@@ -73,12 +104,18 @@ create trigger skills_set_updated_at
 alter table public.projects enable row level security;
 alter table public.skills   enable row level security;
 
--- Start from zero privileges for API roles, then grant SELECT only.
+-- Start from zero privileges for API roles, then grant public read and
+-- authenticated writes protected by the admin-only RLS policies below.
 revoke all on public.projects from anon, authenticated;
 revoke all on public.skills   from anon, authenticated;
+revoke all on public.site_settings from anon, authenticated;
+revoke all on public.admin_login_attempts from public, anon, authenticated;
+grant all on public.admin_login_attempts to service_role;
 
 grant select on public.projects to anon, authenticated;
 grant select on public.skills   to anon, authenticated;
+grant select on public.site_settings to anon, authenticated;
+grant insert, update, delete on public.projects, public.skills, public.site_settings to authenticated;
 
 -- Read-only policies: only published rows are visible.
 drop policy if exists "Public can read published projects" on public.projects;
@@ -95,77 +132,153 @@ create policy "Public can read published skills"
   to anon, authenticated
   using (published = true);
 
--- No INSERT / UPDATE / DELETE policies exist, and those privileges are
--- revoked, so the anon key can never modify data.
+alter table public.site_settings enable row level security;
+alter table public.admin_login_attempts enable row level security;
+revoke all on public.admin_login_attempts from public, anon, authenticated;
+
+drop policy if exists "Public can read site settings" on public.site_settings;
+create policy "Public can read site settings"
+  on public.site_settings for select to anon, authenticated using (true);
+
+drop policy if exists "Portfolio admin manages projects" on public.projects;
+create policy "Portfolio admin manages projects"
+  on public.projects for all to authenticated
+  using (lower(auth.jwt() ->> 'email') = 'johnlloydmelu2004@gmail.com')
+  with check (lower(auth.jwt() ->> 'email') = 'johnlloydmelu2004@gmail.com');
+
+drop policy if exists "Portfolio admin manages skills" on public.skills;
+create policy "Portfolio admin manages skills"
+  on public.skills for all to authenticated
+  using (lower(auth.jwt() ->> 'email') = 'johnlloydmelu2004@gmail.com')
+  with check (lower(auth.jwt() ->> 'email') = 'johnlloydmelu2004@gmail.com');
+
+drop policy if exists "Portfolio admin updates site settings" on public.site_settings;
+create policy "Portfolio admin updates site settings"
+  on public.site_settings for all to authenticated
+  using (lower(auth.jwt() ->> 'email') = 'johnlloydmelu2004@gmail.com')
+  with check (lower(auth.jwt() ->> 'email') = 'johnlloydmelu2004@gmail.com');
+
+insert into storage.buckets (id, name, public)
+values ('portfolio-assets', 'portfolio-assets', true)
+on conflict (id) do update set public = true;
+
+drop policy if exists "Public can view portfolio assets" on storage.objects;
+create policy "Public can view portfolio assets"
+  on storage.objects for select to anon, authenticated
+  using (bucket_id = 'portfolio-assets');
+
+drop policy if exists "Portfolio admin uploads assets" on storage.objects;
+create policy "Portfolio admin uploads assets"
+  on storage.objects for insert to authenticated
+  with check (bucket_id = 'portfolio-assets' and lower(auth.jwt() ->> 'email') = 'johnlloydmelu2004@gmail.com');
+
+drop policy if exists "Portfolio admin updates assets" on storage.objects;
+create policy "Portfolio admin updates assets"
+  on storage.objects for update to authenticated
+  using (bucket_id = 'portfolio-assets' and lower(auth.jwt() ->> 'email') = 'johnlloydmelu2004@gmail.com')
+  with check (bucket_id = 'portfolio-assets' and lower(auth.jwt() ->> 'email') = 'johnlloydmelu2004@gmail.com');
+
+drop policy if exists "Portfolio admin deletes assets" on storage.objects;
+create policy "Portfolio admin deletes assets"
+  on storage.objects for delete to authenticated
+  using (bucket_id = 'portfolio-assets' and lower(auth.jwt() ->> 'email') = 'johnlloydmelu2004@gmail.com');
 
 -- ---------------------------------------------------------------------
 -- Seed data (edit freely, replace your-username / URLs)
 -- ---------------------------------------------------------------------
+delete from public.projects
+where slug in ('network-inventory-tracker', 'helpdesk-ticketing-lite', 'server-health-monitor');
+
 insert into public.projects
-  (title, slug, summary, description, tech_stack, github_url, live_url, featured, published, sort_order)
+  (title, slug, summary, description, tech_stack, github_url, github_label, project_type, website_code_url, mobile_code_url, live_url, featured, published, sort_order)
 values
   (
-    'CareWatch',
-    'carewatch',
-    'A health-monitoring dashboard that helps caregivers track patient vitals and respond to alerts quickly.',
-    'CareWatch gives caregivers a single place to monitor patients, review vitals trends, and receive prioritised alerts. Built with a focus on clarity, accessibility, and secure role-based data access.',
-    array['React','Vite','Tailwind CSS','Supabase','PostgreSQL','Vercel'],
-    'https://github.com/your-username/carewatch',
-    'https://carewatch.example.com',
+    'Smart Campus Companion',
+    'smart-campus-companion',
+    'Mobile app for campus information, academic schedules, tasks, and announcements.',
+    null,
+    array['Mobile'],
+    'https://github.com/johnlloydmelu/SmartCampusCompanion',
+    'Mobile Code',
+    'Mobile',
+    null,
+    null,
+    null,
     true,
     true,
     0
   ),
   (
-    'Network Inventory Tracker',
-    'network-inventory-tracker',
-    'Asset and device inventory tool for small IT teams with search, tagging, and CSV export.',
-    'Track servers, switches, laptops and licences in one searchable table with warranty reminders.',
-    array['React','Node.js','PostgreSQL'],
-    'https://github.com/your-username/network-inventory-tracker',
+    'CareWatch',
+    'carewatch',
+    'Capstone system for monitoring resident health, managing records, and sending real-time caregiver alerts.',
+    null,
+    array['Web','Mobile','Wearable'],
+    null,
+    null,
+    'Website + Mobile',
+    'https://github.com/dyeykob24/Capstone_Web_Health_Monitoring',
+    'https://github.com/r-lovete-dev/Wearable-Watch-Vitals',
     null,
     false,
     true,
     1
   ),
   (
-    'Helpdesk Ticketing Lite',
-    'helpdesk-ticketing-lite',
-    'Lightweight ticketing system with status workflow, priorities and email notifications.',
-    'A minimal helpdesk for student organisations and small offices.',
-    array['JavaScript','Supabase','Tailwind CSS'],
-    'https://github.com/your-username/helpdesk-ticketing-lite',
+    'CabRent',
+    'cabrent',
+    'Rental listing platform for browsing, searching, and managing properties in Cabuyao City.',
+    null,
+    array['Web','Property Listings'],
+    'https://github.com/johnlloydmelu/rental_system',
+    'Website Code',
+    'Website',
+    null,
+    null,
     null,
     false,
     true,
     2
-  ),
-  (
-    'Server Health Monitor',
-    'server-health-monitor',
-    'Scripts and dashboard for tracking uptime, CPU, memory and disk usage across Linux hosts.',
-    'Collects metrics with shell scripts and visualises them in a small web dashboard.',
-    array['Linux','Bash','Python','Grafana'],
-    'https://github.com/your-username/server-health-monitor',
-    null,
-    false,
-    true,
-    3
   )
-on conflict (slug) do nothing;
+on conflict (slug) do update set
+  title = excluded.title,
+  summary = excluded.summary,
+  description = excluded.description,
+  tech_stack = excluded.tech_stack,
+  github_url = excluded.github_url,
+  github_label = excluded.github_label,
+  project_type = excluded.project_type,
+  website_code_url = excluded.website_code_url,
+  mobile_code_url = excluded.mobile_code_url,
+  live_url = excluded.live_url,
+  featured = excluded.featured,
+  published = excluded.published,
+  sort_order = excluded.sort_order;
 
-insert into public.skills (name, category, level, published, sort_order)
+delete from public.skills where name in ('Tailwind CSS', 'Vercel');
+
+insert into public.skills (name, category, level, icon, published, sort_order)
 values
-  ('JavaScript',        'Frontend',        90, true, 0),
-  ('React',             'Frontend',        88, true, 1),
-  ('Tailwind CSS',      'Frontend',        90, true, 2),
-  ('HTML & CSS',        'Frontend',        92, true, 3),
-  ('Node.js',           'Backend',         78, true, 0),
-  ('PostgreSQL',        'Backend',         80, true, 1),
-  ('Supabase',          'Backend',         82, true, 2),
-  ('REST APIs',         'Backend',         85, true, 3),
-  ('Git & GitHub',      'DevOps & Tools',  88, true, 0),
-  ('Vercel',            'DevOps & Tools',  80, true, 1),
-  ('Linux',             'DevOps & Tools',  75, true, 2),
-  ('Networking Basics', 'DevOps & Tools',  72, true, 3)
-on conflict (name) do nothing;
+  ('JavaScript',        'Frontend',        90, 'javascript', true, 0),
+  ('PHP',               'Backend',         75, 'php', true, 4),
+  ('Java',              'Languages',       80, 'devicon:java', true, 0),
+  ('C#',                'Languages',       75, 'devicon:csharp', true, 1),
+  ('Kotlin',            'Mobile',          75, 'kotlin', true, 2),
+  ('Flutter',            'Mobile',          75, 'flutter', true, 3),
+  ('MySQL',             'Backend',         80, 'mysql', true, 5),
+  ('React',             'Frontend',        88, 'react', true, 1),
+  ('CSS Frameworks',    'Frontend',        85, '', true, 2),
+  ('HTML & CSS',        'Frontend',        92, 'html5', true, 3),
+  ('Node.js',           'Backend',         78, 'local:node-js.png', true, 0),
+  ('PostgreSQL',        'Backend',         80, 'postgresql', true, 1),
+  ('Supabase',          'Backend',         82, 'supabase', true, 2),
+  ('REST APIs',         'Backend',         85, '', true, 3),
+  ('Git & GitHub',      'DevOps & Tools',  88, 'github', true, 0),
+  ('Linux',             'DevOps & Tools',  75, 'linux', true, 2),
+  ('Networking Basics', 'DevOps & Tools',  72, '', true, 3)
+on conflict (name) do update set
+  category = excluded.category,
+  level = excluded.level,
+  icon = excluded.icon,
+  published = excluded.published,
+  sort_order = excluded.sort_order;

@@ -42,8 +42,14 @@ export function useTable(table, fallback) {
     }
 
     load()
+    const reload = () => {
+      setLoading(true)
+      load()
+    }
+    window.addEventListener('portfolio-data-changed', reload)
     return () => {
       cancelled = true
+      window.removeEventListener('portfolio-data-changed', reload)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [table])

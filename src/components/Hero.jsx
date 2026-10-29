@@ -1,7 +1,7 @@
 import { profile } from '../config.js'
 import { GithubIcon, LinkedinIcon } from './Icons.jsx'
 
-export default function Hero() {
+export default function Hero({ portraitUrl = '/john-lloyd-melu.png' }) {
   return (
     <section id="home" className="relative overflow-hidden">
       <div className="pointer-events-none absolute inset-0 -z-10">
@@ -19,8 +19,8 @@ export default function Hero() {
         />
       </div>
 
-      <div className="mx-auto max-w-6xl px-6 pb-12 pt-20 sm:pb-16 sm:pt-24">
-        <div className="grid items-center gap-2 md:grid-cols-[minmax(0,1fr)_minmax(18rem,24rem)] md:gap-6">
+      <div className="mx-auto max-w-6xl px-5 pb-12 pt-20 sm:px-6 sm:pb-16 sm:pt-24">
+        <div className="grid items-center gap-6 md:grid-cols-[minmax(0,1fr)_minmax(18rem,24rem)] md:gap-8">
           <div className="animate-fade-up">
             <p className="mb-4 inline-flex items-center gap-2 rounded-full border border-slate-700 bg-slate-900/70 px-3 py-1 font-mono text-xs text-slate-300">
               <span className="h-2 w-2 animate-pulse-dot rounded-full bg-emerald-400" />
@@ -41,7 +41,7 @@ export default function Hero() {
             </p>
 
             <div className="mt-7 flex flex-wrap items-center gap-3">
-              <a href="#projects" className="btn-primary">View Projects</a>
+              <a href="#projects" className="btn-primary">View Previous Projects</a>
               <a href="#contact" className="btn-ghost">Contact Me</a>
               {(profile.github || profile.linkedin) && <div className="ml-1 flex items-center gap-3 text-slate-400">
                 {profile.github && <a href={profile.github} target="_blank" rel="noopener noreferrer" aria-label="GitHub profile" className="rounded-lg p-2 transition hover:bg-slate-800 hover:text-white"><GithubIcon /></a>}
@@ -50,13 +50,20 @@ export default function Hero() {
             </div>
           </div>
 
-          <div className="mx-auto my-5 aspect-square w-64 overflow-hidden rounded-full border-4 border-cyan-300/70 bg-slate-900 shadow-xl shadow-cyan-500/10 ring-4 ring-cyan-400/10 sm:w-72 md:my-0 md:w-[22rem]">
+          <div className="group relative order-first mx-auto my-1 h-64 w-60 overflow-hidden rounded-[2rem] border border-cyan-200/30 bg-gradient-to-br from-cyan-300/20 via-slate-900 to-slate-950 shadow-2xl shadow-cyan-950/50 ring-1 ring-white/10 sm:my-3 sm:h-80 sm:w-72 md:order-none md:my-0 md:h-[22rem] md:w-[22rem]">
+            <div className="pointer-events-none absolute -right-12 -top-12 h-44 w-44 rounded-full bg-cyan-400/20 blur-3xl" />
+            <div className="pointer-events-none absolute inset-3 rounded-[1.5rem] border border-white/10" />
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-24 bg-gradient-to-t from-slate-950/70 to-transparent" />
             <img
-              src="/john-lloyd-melu.png"
+              src={portraitUrl}
               alt={`Portrait of ${profile.name}`}
-              className="h-full w-full rounded-full object-cover object-top"
+              className="relative z-10 h-full w-full object-contain object-bottom drop-shadow-[0_12px_24px_rgba(0,0,0,0.35)] transition-transform duration-500 ease-out group-hover:scale-[1.03]"
               fetchPriority="high"
             />
+            <div className="absolute bottom-4 left-5 z-30">
+              <p className="text-xs font-medium uppercase tracking-[0.2em] text-cyan-200">Portfolio</p>
+              <p className="mt-1 text-sm font-semibold text-white">{profile.name}</p>
+            </div>
           </div>
         </div>
       </div>

@@ -34,3 +34,29 @@
     @apply rounded-full border border-slate-700 bg-slate-800/60 px-2.5 py-1 text-xs font-medium text-slate-300;
   }
 }
+
+.cursor-grid {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 220ms ease;
+  background-image:
+    linear-gradient(to right, rgb(34 211 238 / 14%) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(34 211 238 / 14%) 1px, transparent 1px),
+    radial-gradient(circle 130px at var(--cursor-x, -200px) var(--cursor-y, -200px), rgb(34 211 238 / 7%), transparent 100%);
+  background-size: 28px 28px, 28px 28px, auto;
+  mask-image: radial-gradient(circle 170px at var(--cursor-x, -200px) var(--cursor-y, -200px), #000 0%, transparent 100%);
+  -webkit-mask-image: radial-gradient(circle 170px at var(--cursor-x, -200px) var(--cursor-y, -200px), #000 0%, transparent 100%);
+}
+
+.cursor-grid[data-active='true'] {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cursor-grid {
+    display: none;
+  }
+}

@@ -8,6 +8,6 @@ export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey)
 // Only the public anon key is used here. Data safety is enforced by RLS in Postgres.
 export const supabase = isSupabaseConfigured
   ? createClient(supabaseUrl, supabaseAnonKey, {
-      auth: { persistSession: false, autoRefreshToken: false },
+      auth: { persistSession: true, autoRefreshToken: true },
     })
   : null
