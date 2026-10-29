@@ -38,7 +38,6 @@ export const fallbackSkills = [
   { id: 'kotlin', name: 'Kotlin', category: 'Mobile', level: 75, icon: 'kotlin' },
   { id: 'flutter', name: 'Flutter', category: 'Mobile', level: 75, icon: 'flutter' },
   { id: 'mysql', name: 'MySQL', category: 'Backend', level: 80, icon: 'mysql' },
-  { id: 'nodejs', name: 'Node.js', category: 'Backend', level: 78, icon: 'local:node-js.png' },
   { id: 'postgresql', name: 'PostgreSQL', category: 'Backend', level: 80, icon: 'postgresql' },
   { id: 'supabase', name: 'Supabase', category: 'Backend', level: 82, icon: 'supabase' },
   { id: 'api', name: 'API', category: 'Backend', level: 80, icon: '' },
