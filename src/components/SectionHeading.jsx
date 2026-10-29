@@ -1,6 +1,6 @@
 export default function SectionHeading({ eyebrow, title, subtitle }) {
   return (
-    <div className="mb-12 max-w-2xl">
+    <div className="mb-7 max-w-2xl">
       {eyebrow && (
         <p className="mb-2 font-mono text-sm uppercase tracking-widest text-cyan-400">
           {eyebrow}

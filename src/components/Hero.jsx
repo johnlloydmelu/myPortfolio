@@ -1,5 +1,5 @@
 import { profile } from '../config.js'
-import { GithubIcon, LinkedinIcon, ArrowDownIcon } from './Icons.jsx'
+import { GithubIcon, LinkedinIcon } from './Icons.jsx'
 
 export default function Hero() {
   return (
@@ -19,54 +19,44 @@ export default function Hero() {
         />
       </div>
 
-      <div className="mx-auto max-w-6xl px-6 pb-24 pt-32 sm:pt-44">
-        <div className="animate-fade-up">
-          <p className="mb-4 inline-flex items-center gap-2 rounded-full border border-slate-700 bg-slate-900/70 px-3 py-1 font-mono text-xs text-slate-300">
-            <span className="h-2 w-2 animate-pulse-dot rounded-full bg-emerald-400" />
-            Open to opportunities
-          </p>
+      <div className="mx-auto max-w-6xl px-6 pb-12 pt-20 sm:pb-16 sm:pt-24">
+        <div className="grid items-center gap-2 md:grid-cols-[minmax(0,1fr)_minmax(18rem,24rem)] md:gap-6">
+          <div className="animate-fade-up">
+            <p className="mb-4 inline-flex items-center gap-2 rounded-full border border-slate-700 bg-slate-900/70 px-3 py-1 font-mono text-xs text-slate-300">
+              <span className="h-2 w-2 animate-pulse-dot rounded-full bg-emerald-400" />
+              Open to opportunities
+            </p>
 
-          <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-6xl">
-            Hi, I&apos;m{' '}
-            <span className="bg-gradient-to-r from-cyan-300 to-emerald-300 bg-clip-text text-transparent">
-              {profile.name}
-            </span>
-          </h1>
-          <h2 className="mt-3 text-xl font-semibold text-slate-300 sm:text-2xl">
-            {profile.role}
-          </h2>
-          <p className="mt-6 max-w-2xl text-lg leading-relaxed text-slate-400">
-            {profile.tagline}
-          </p>
+            <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl">
+              Hi, I&apos;m{' '}
+              <span className="bg-gradient-to-r from-cyan-300 to-emerald-300 bg-clip-text text-transparent">
+                {profile.name}
+              </span>
+            </h1>
+            <h2 className="mt-3 text-xl font-semibold text-slate-300 sm:text-2xl">
+              {profile.role}
+            </h2>
+            <p className="mt-5 max-w-2xl text-base leading-relaxed text-slate-400 sm:text-lg">
+              {profile.tagline}
+            </p>
 
-          <div className="mt-10 flex flex-wrap items-center gap-4">
-            <a href="#carewatch" className="btn-primary">
-              View CareWatch
-              <ArrowDownIcon />
-            </a>
-            <a href="#projects" className="btn-ghost">
-              All projects
-            </a>
-            <div className="ml-1 flex items-center gap-3 text-slate-400">
-              <a
-                href={profile.github}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="GitHub profile"
-                className="rounded-lg p-2 transition hover:bg-slate-800 hover:text-white"
-              >
-                <GithubIcon />
-              </a>
-              <a
-                href={profile.linkedin}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="LinkedIn profile"
-                className="rounded-lg p-2 transition hover:bg-slate-800 hover:text-white"
-              >
-                <LinkedinIcon />
-              </a>
+            <div className="mt-7 flex flex-wrap items-center gap-3">
+              <a href="#projects" className="btn-primary">View Projects</a>
+              <a href="#contact" className="btn-ghost">Contact Me</a>
+              {(profile.github || profile.linkedin) && <div className="ml-1 flex items-center gap-3 text-slate-400">
+                {profile.github && <a href={profile.github} target="_blank" rel="noopener noreferrer" aria-label="GitHub profile" className="rounded-lg p-2 transition hover:bg-slate-800 hover:text-white"><GithubIcon /></a>}
+                {profile.linkedin && <a href={profile.linkedin} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn profile" className="rounded-lg p-2 transition hover:bg-slate-800 hover:text-white"><LinkedinIcon /></a>}
+              </div>}
             </div>
+          </div>
+
+          <div className="mx-auto my-5 aspect-square w-64 overflow-hidden rounded-full border-4 border-cyan-300/70 bg-slate-900 shadow-xl shadow-cyan-500/10 ring-4 ring-cyan-400/10 sm:w-72 md:my-0 md:w-[22rem]">
+            <img
+              src="/john-lloyd-melu.png"
+              alt={`Portrait of ${profile.name}`}
+              className="h-full w-full rounded-full object-cover object-top"
+              fetchPriority="high"
+            />
           </div>
         </div>
       </div>

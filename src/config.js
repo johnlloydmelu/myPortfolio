@@ -1,19 +1,15 @@
 export const profile = {
-  name: 'Your Name',
-  role: 'IT Professional & Full-Stack Developer',
+  name: 'John Lloyd E. Melu',
+  role: 'Fresh IT Graduate',
   tagline:
-    'I build reliable web applications and care about clean interfaces, secure data, and systems that just work.',
-  location: 'Calamba, Philippines',
-  email: 'you@example.com',
-  github: 'https://github.com/your-username',
-  linkedin: 'https://www.linkedin.com/in/your-username',
+    "I'm a fresh IT graduate interested in software development, web technologies, and building practical digital solutions. I'm continuing to develop my skills and looking forward to applying what I've learned to real-world projects.",
+  location: '',
+  email: 'johnlloydmelu2004@gmail.com',
+  github: 'https://github.com/johnlloydmelu',
+  linkedin: 'https://www.linkedin.com/in/melu-john-lloyd-e-1217a0444/',
   about: [
-    'I am an IT enthusiast who enjoys turning real-world problems into dependable software. My work spans front-end development, databases, and cloud deployment.',
-    'I focus on accessibility, performance, and security from the start, and I like shipping small improvements often. Outside of coding, I tinker with networking and Linux servers.',
+    'I recently graduated in Information Technology and enjoy learning how software can solve practical problems. I am especially interested in programming, web development, and working with databases.',
+    'I am continuing to build my skills, explore new technologies, and looking for opportunities to gain practical IT experience and contribute to meaningful projects.',
   ],
-  stats: [
-    { label: 'Projects built', value: '10+' },
-    { label: 'Technologies', value: '15+' },
-    { label: 'Focus', value: 'Web & Cloud' },
-  ],
+  stats: [],
 }

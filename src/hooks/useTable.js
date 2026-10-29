@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { supabase } from '../lib/supabase'
+import { supabase } from '../libs/supabase.js'
 
 /**
  * Loads published rows from a Supabase table, ordered by sort_order.

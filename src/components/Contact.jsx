@@ -3,40 +3,21 @@ import SectionHeading from './SectionHeading.jsx'
 import { MailIcon, GithubIcon, LinkedinIcon } from './Icons.jsx'
 
 export default function Contact() {
+  const hasContact = profile.email || profile.github || profile.linkedin
+
   return (
-    <section id="contact" className="mx-auto max-w-6xl px-6 py-24">
-      <div className="card relative overflow-hidden p-8 text-center sm:p-14">
-        <div className="pointer-events-none absolute -top-24 left-1/2 h-64 w-64 -translate-x-1/2 rounded-full bg-cyan-500/15 blur-3xl" />
-        <div className="relative mx-auto max-w-xl">
-          <SectionHeading eyebrow="05. Contact" title="Let's work together" />
-          <p className="-mt-6 mb-8 text-slate-400">
-            Have a role, project, or idea in mind? My inbox is always open.
+    <section id="contact" className="mx-auto max-w-6xl px-6 py-14 sm:py-16">
+      <div className="card relative overflow-hidden p-7 sm:p-10">
+        <div className="relative mx-auto max-w-2xl">
+          <SectionHeading eyebrow="04. Contacts" title="Let's connect" />
+          <p className="-mt-6 text-slate-400">
+            I’m open to conversations about entry-level IT opportunities, collaborations, and projects.
           </p>
-
-          <a href={`mailto:${profile.email}`} className="btn-primary">
-            <MailIcon className="h-4 w-4" /> {profile.email}
-          </a>
-
-          <div className="mt-8 flex justify-center gap-4 text-slate-400">
-            <a
-              href={profile.github}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="GitHub profile"
-              className="rounded-lg p-2 transition hover:bg-slate-800 hover:text-white"
-            >
-              <GithubIcon className="h-6 w-6" />
-            </a>
-            <a
-              href={profile.linkedin}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="LinkedIn profile"
-              className="rounded-lg p-2 transition hover:bg-slate-800 hover:text-white"
-            >
-              <LinkedinIcon className="h-6 w-6" />
-            </a>
-          </div>
+          {hasContact && <div className="mt-6 flex flex-wrap gap-3">
+            {profile.email && <a href={`mailto:${profile.email}`} className="btn-primary"><MailIcon className="h-4 w-4" />Email me</a>}
+            {profile.github && <a href={profile.github} target="_blank" rel="noopener noreferrer" aria-label="GitHub profile" className="btn-ghost"><GithubIcon />GitHub</a>}
+            {profile.linkedin && <a href={profile.linkedin} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn profile" className="btn-ghost"><LinkedinIcon />LinkedIn</a>}
+          </div>}
         </div>
       </div>
     </section>

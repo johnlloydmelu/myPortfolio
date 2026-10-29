@@ -4,10 +4,9 @@ import { MenuIcon, CloseIcon } from './Icons.jsx'
 
 const links = [
   { href: '#about', label: 'About' },
-  { href: '#skills', label: 'Skills' },
-  { href: '#carewatch', label: 'CareWatch' },
+  { href: '#skills', label: 'Tech Stack' },
   { href: '#projects', label: 'Projects' },
-  { href: '#contact', label: 'Contact' },
+  { href: '#contact', label: 'Contacts' },
 ]
 
 export default function Navbar() {
@@ -37,10 +36,6 @@ export default function Navbar() {
             </li>
           ))}
         </ul>
-
-        <a href="#contact" className="btn-primary hidden md:inline-flex">
-          Hire me
-        </a>
 
         <button
           type="button"

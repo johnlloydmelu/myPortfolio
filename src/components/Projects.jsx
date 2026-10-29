@@ -61,11 +61,10 @@ function ProjectCard({ project }) {
 export default function Projects({ projects, loading, usingFallback }) {
   return (
     <section id="projects" className="border-y border-slate-800/70 bg-slate-900/30">
-      <div className="mx-auto max-w-6xl px-6 py-20">
+      <div className="mx-auto max-w-6xl px-6 py-12 sm:py-14">
         <SectionHeading
-          eyebrow="04. Projects"
-          title="More things I've built"
-          subtitle="A selection of practical projects across web development and IT operations."
+          eyebrow="03. Projects"
+          title="Projects"
         />
 
         {loading ? (
@@ -84,11 +83,6 @@ export default function Projects({ projects, loading, usingFallback }) {
           </div>
         )}
 
-        {usingFallback && !loading && (
-          <p className="mt-6 font-mono text-xs text-slate-600">
-            Showing sample projects (Supabase not configured or empty).
-          </p>
-        )}
       </div>
     </section>
   )
