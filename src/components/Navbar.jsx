@@ -1,71 +1,89 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { profile } from '../config.js'
 import { MenuIcon, CloseIcon } from './Icons.jsx'
 
 const links = [
   { href: '#about', label: 'About' },
-  { href: '#skills', label: 'Tech Stack' },
-  { href: '#projects', label: 'Previous Projects' },
-  { href: '#contact', label: 'Contacts' },
+  { href: '#skills', label: 'Tech stack' },
+  { href: '#projects', label: 'Projects' },
+  { href: '#contact', label: 'Contact' },
 ]
 
 export default function Navbar() {
   const [open, setOpen] = useState(false)
+  const [active, setActive] = useState('')
+  const menuButtonRef = useRef(null)
+  const progressRef = useRef(null)
+
+  useEffect(() => {
+    const sections = links.map(({ href }) => document.querySelector(href)).filter(Boolean)
+    const updateActiveSection = () => {
+      const marker = window.innerHeight * .38
+      const activeSection = sections.find((section) => {
+        const bounds = section.getBoundingClientRect()
+        return bounds.top <= marker && bounds.bottom > marker
+      }) || sections.filter((section) => section.getBoundingClientRect().top <= marker).at(-1)
+
+      if (activeSection) setActive(`#${activeSection.id}`)
+    }
+    const observer = new IntersectionObserver(updateActiveSection, {
+      rootMargin: '-32% 0px -56% 0px',
+      threshold: 0,
+    })
+    sections.forEach((section) => observer.observe(section))
+    updateActiveSection()
+    return () => observer.disconnect()
+  }, [])
+
+  useEffect(() => {
+    if (!open) return
+    const onKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        setOpen(false)
+        menuButtonRef.current?.focus()
+      }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [open])
+
+  useEffect(() => {
+    let frame = 0
+    const updateProgress = () => {
+      if (frame) return
+      frame = window.requestAnimationFrame(() => {
+        const total = document.documentElement.scrollHeight - window.innerHeight
+        const progress = total > 0 ? Math.min(1, window.scrollY / total) : 0
+        progressRef.current?.style.setProperty('--progress', String(progress))
+        frame = 0
+      })
+    }
+    window.addEventListener('scroll', updateProgress, { passive: true })
+    window.addEventListener('resize', updateProgress)
+    updateProgress()
+    return () => {
+      window.removeEventListener('scroll', updateProgress)
+      window.removeEventListener('resize', updateProgress)
+      if (frame) window.cancelAnimationFrame(frame)
+    }
+  }, [])
 
   return (
-    <header className="fixed inset-x-0 top-0 z-50 border-b border-slate-800/80 bg-slate-950/80 backdrop-blur">
-      <nav
-        className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6"
-        aria-label="Main navigation"
-      >
-        <a href="#home" className="font-mono text-lg font-bold text-white">
-          <span className="text-cyan-400">&lt;</span>
-          {profile.name.split(' ')[0]}
-          <span className="text-cyan-400">/&gt;</span>
-        </a>
-
-        <ul className="hidden items-center gap-8 md:flex">
-          {links.map((l) => (
-            <li key={l.href}>
-              <a
-                href={l.href}
-                className="text-sm font-medium text-slate-400 transition hover:text-white"
-              >
-                {l.label}
-              </a>
-            </li>
-          ))}
+    <header className="site-header">
+      <nav className="nav-shell" aria-label="Main navigation">
+        <a href="#home" className="wordmark" aria-label={`${profile.name}, home`}><span>whoami</span><i>—</i></a>
+        <ul className="desktop-nav">
+          {links.map((link) => <li key={link.href}><a className={active === link.href ? 'is-active' : ''} aria-current={active === link.href ? 'location' : undefined} href={link.href} data-label={link.label}><span className="nav-link-text" data-label={link.label}>{link.label}</span></a></li>)}
         </ul>
-
-        <button
-          type="button"
-          className="rounded-lg p-2 text-slate-300 hover:bg-slate-800 md:hidden"
-          onClick={() => setOpen((v) => !v)}
-          aria-expanded={open}
-          aria-controls="mobile-menu"
-          aria-label={open ? 'Close menu' : 'Open menu'}
-        >
+        <a className="nav-contact" href="#contact" data-magnetic>Let’s talk <span aria-hidden="true">↗</span></a>
+        <button ref={menuButtonRef} type="button" className="menu-toggle" onClick={() => setOpen((value) => !value)} aria-expanded={open} aria-controls="mobile-menu" aria-label={open ? 'Close menu' : 'Open menu'}>
           {open ? <CloseIcon /> : <MenuIcon />}
         </button>
       </nav>
-
-      {open && (
-        <div id="mobile-menu" className="border-t border-slate-800 bg-slate-950 md:hidden">
-          <ul className="mx-auto flex max-w-6xl flex-col px-6 py-4">
-            {links.map((l) => (
-              <li key={l.href}>
-                <a
-                  href={l.href}
-                  onClick={() => setOpen(false)}
-                  className="block rounded-lg px-3 py-3 text-base font-medium text-slate-300 hover:bg-slate-900 hover:text-white"
-                >
-                  {l.label}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+      <div id="mobile-menu" className={`mobile-menu${open ? ' is-open' : ''}`} hidden={!open}>
+        {links.map((link, index) => <a key={link.href} href={link.href} data-label={link.label} onClick={() => setOpen(false)}><span className="mobile-link-index">0{index + 1}</span><span className="nav-link-text" data-label={link.label}>{link.label}</span><b aria-hidden="true">↗</b></a>)}
+      </div>
+      <div ref={progressRef} className="scroll-progress" aria-hidden="true" />
     </header>
   )
 }

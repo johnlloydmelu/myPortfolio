@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../libs/supabase.js'
 
-const inputClass = 'mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-white outline-none focus:border-cyan-400'
+const inputClass = 'admin-input mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-white outline-none'
 const labelClass = 'block text-sm font-medium text-slate-300'
-const buttonClass = 'rounded-lg bg-cyan-400 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-50'
+const buttonClass = 'admin-primary rounded-lg px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50'
 const lockoutStorageKey = 'portfolio_admin_lockout_v1'
 const notifyPortfolioUpdate = () => window.dispatchEvent(new Event('portfolio-data-changed'))
 
@@ -264,11 +264,11 @@ export default function AdminAccess({ onPortraitChange }) {
   if (!open) return null
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/80 p-3 backdrop-blur-sm sm:p-6" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setOpen(false) }}>
-      <section className="max-h-[92vh] w-full max-w-4xl overflow-y-auto rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl" role="dialog" aria-modal="true" aria-labelledby="admin-title">
+    <div className="admin-overlay fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/80 p-3 backdrop-blur-sm sm:p-6" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setOpen(false) }}>
+      <section className="admin-dialog max-h-[92vh] w-full max-w-4xl overflow-y-auto rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl" role="dialog" aria-modal="true" aria-labelledby="admin-title" data-lenis-prevent>
         <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-800 bg-slate-900/95 px-5 py-4 backdrop-blur sm:px-7">
           <div>
-            <p className="text-xs font-medium uppercase tracking-[0.2em] text-cyan-300">Portfolio controls</p>
+            <p className="admin-accent-text text-xs font-medium uppercase tracking-[0.2em]">Portfolio controls</p>
             <h2 id="admin-title" className="mt-1 text-xl font-bold text-white">{session ? 'Superadmin' : 'Admin access'}</h2>
           </div>
           <div className="flex items-center gap-3">
@@ -291,10 +291,10 @@ export default function AdminAccess({ onPortraitChange }) {
           <div className="p-5 sm:p-7">
             <div className="mb-6 flex flex-wrap gap-2">
               {['projects', 'tech stack', 'portrait'].map((item) => (
-                <button key={item} type="button" onClick={() => { setTab(item); setError(''); setNotice('') }} className={`rounded-lg px-4 py-2 text-sm font-medium capitalize transition ${tab === item ? 'bg-cyan-400 text-slate-950' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'}`}>{item}</button>
+                <button key={item} type="button" onClick={() => { setTab(item); setError(''); setNotice('') }} className={`admin-tab rounded-lg px-4 py-2 text-sm font-medium capitalize transition ${tab === item ? 'is-active' : ''}`}>{item}</button>
               ))}
             </div>
-            {notice && <p className="mb-4 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">{notice}</p>}
+            {notice && <p className="admin-notice mb-4 rounded-lg border px-4 py-3 text-sm">{notice}</p>}
             {error && <p role="alert" className="mb-4 rounded-lg border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">{error}</p>}
 
             {tab === 'projects' && (
@@ -322,7 +322,7 @@ export default function AdminAccess({ onPortraitChange }) {
                   {projects.map((project) => (
                     <div key={project.id} className="flex items-center justify-between gap-3 rounded-xl border border-slate-800 bg-slate-950/40 p-3">
                       <div className="min-w-0"><p className="truncate text-sm font-medium text-white">{project.title}</p><p className="mt-1 truncate text-xs text-slate-500">{project.project_type || project.tech_stack?.join(', ')}</p></div>
-                      <div className="flex shrink-0 gap-2"><button type="button" onClick={() => setProjectEdit(project)} className="text-sm text-cyan-300 hover:text-white">Edit</button><button type="button" onClick={() => removeProject(project)} className="text-sm text-rose-300 hover:text-white">Delete</button></div>
+                      <div className="flex shrink-0 gap-2"><button type="button" onClick={() => setProjectEdit(project)} className="text-sm admin-accent-text hover:text-white">Edit</button><button type="button" onClick={() => removeProject(project)} className="text-sm text-rose-300 hover:text-white">Delete</button></div>
                     </div>
                   ))}
                 </div>
@@ -339,7 +339,7 @@ export default function AdminAccess({ onPortraitChange }) {
                   <label className={labelClass}>Or image URL<input name="image_url" type="url" defaultValue={skillEdit?.image_url || ''} placeholder="https://.../icon.svg" className={inputClass} /></label>
                   <div className="flex gap-2"><button className={buttonClass} disabled={busy}>{skillEdit ? 'Save changes' : 'Add to tech stack'}</button>{skillEdit && <button type="button" onClick={() => setSkillEdit(null)} className="rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-300">Cancel</button>}</div>
                 </form>
-                <div className="space-y-3"><h3 className="font-semibold text-white">Current tech stack</h3>{skills.map((skill) => <div key={skill.id} className="flex items-center justify-between gap-3 rounded-xl border border-slate-800 bg-slate-950/40 p-3"><div className="min-w-0"><p className="truncate text-sm font-medium text-white">{skill.name}</p><p className="mt-1 truncate text-xs text-slate-500">{skill.category}</p></div><div className="flex shrink-0 gap-2"><button type="button" onClick={() => setSkillEdit(skill)} className="text-sm text-cyan-300 hover:text-white">Edit</button><button type="button" onClick={() => removeSkill(skill)} className="text-sm text-rose-300 hover:text-white">Delete</button></div></div>)}</div>
+                <div className="space-y-3"><h3 className="font-semibold text-white">Current tech stack</h3>{skills.map((skill) => <div key={skill.id} className="flex items-center justify-between gap-3 rounded-xl border border-slate-800 bg-slate-950/40 p-3"><div className="min-w-0"><p className="truncate text-sm font-medium text-white">{skill.name}</p><p className="mt-1 truncate text-xs text-slate-500">{skill.category}</p></div><div className="flex shrink-0 gap-2"><button type="button" onClick={() => setSkillEdit(skill)} className="text-sm admin-accent-text hover:text-white">Edit</button><button type="button" onClick={() => removeSkill(skill)} className="text-sm text-rose-300 hover:text-white">Delete</button></div></div>)}</div>
               </div>
             )}
 
@@ -347,7 +347,7 @@ export default function AdminAccess({ onPortraitChange }) {
               <div className="max-w-lg space-y-5 rounded-xl border border-slate-800 bg-slate-950/40 p-5">
                 <div><h3 className="font-semibold text-white">Profile picture</h3><p className="mt-1 text-sm text-slate-400">Upload a portrait image to replace the one shown in the hero section.</p></div>
                 <label className={labelClass}>Choose image<input type="file" accept="image/*" onChange={uploadPortrait} className="mt-2 block w-full text-sm text-slate-300 file:mr-3 file:rounded-lg file:border-0 file:bg-slate-800 file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-slate-700" /></label>
-                {busy && <p className="text-sm text-cyan-200">Uploading portrait…</p>}
+                {busy && <p className="text-sm admin-accent-text">Uploading portrait…</p>}
               </div>
             )}
           </div>

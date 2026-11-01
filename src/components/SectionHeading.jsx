@@ -1,13 +1,13 @@
 export default function SectionHeading({ eyebrow, title, subtitle }) {
   return (
-    <div className="mb-7 max-w-2xl">
+    <div className="section-heading">
       {eyebrow && (
-        <p className="mb-2 font-mono text-sm uppercase tracking-widest text-cyan-400">
+        <p className="eyebrow">
           {eyebrow}
         </p>
       )}
-      <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">{title}</h2>
-      {subtitle && <p className="mt-4 text-slate-400">{subtitle}</p>}
+      <h2>{title}</h2>
+      {subtitle && <p>{subtitle}</p>}
     </div>
   )
 }

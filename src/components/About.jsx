@@ -3,10 +3,13 @@ import SectionHeading from './SectionHeading.jsx'
 
 export default function About() {
   return (
-    <section id="about" className="mx-auto max-w-6xl px-6 py-12 sm:py-14">
-      <SectionHeading eyebrow="01. About" title="A bit about me" />
-      <div className="max-w-3xl space-y-4 text-base leading-relaxed text-slate-400">
-        {profile.about.map((paragraph, index) => <p key={index}>{paragraph}</p>)}
+    <section id="about" className="section-wrap about-section">
+      <div className="section-kicker"><span>01 / ABOUT</span><span>Profile</span></div>
+      <div className="about-layout">
+        <SectionHeading eyebrow="A little context" title="Learning by making." />
+        <div className="about-copy">
+          {profile.about.map((paragraph, index) => <p key={index}>{paragraph}</p>)}
+        </div>
       </div>
     </section>
   )

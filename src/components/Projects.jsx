@@ -1,103 +1,112 @@
+import { useCallback, useEffect, useRef, useState } from 'react'
 import SectionHeading from './SectionHeading.jsx'
 import { GithubIcon, ExternalIcon } from './Icons.jsx'
 
-function SkeletonProject() {
-  return (
-    <div className="card animate-pulse p-6">
-      <div className="mb-4 h-5 w-2/3 rounded bg-slate-800" />
-      <div className="mb-2 h-3 rounded bg-slate-800" />
-      <div className="mb-6 h-3 w-5/6 rounded bg-slate-800" />
-      <div className="h-6 w-1/2 rounded bg-slate-800" />
-    </div>
-  )
+const projectArtwork = {
+  cabrent: { src: '/projects/cabrent.jpg', alt: 'CabRent logo', className: 'cabrent-artwork' },
+  'smart-campus-companion': { src: '/projects/smart-campus-companion.png', alt: 'Smart Campus Companion logo', className: 'campus-artwork' },
+  carewatch: { src: '/projects/carewatch.jpg', alt: 'CareWatch logo', className: 'carewatch-artwork' },
 }
 
-function ProjectCard({ project }) {
+function SkeletonProject() {
+  return <div className="project-skeleton" aria-label="Loading projects"><span /></div>
+}
+
+function Project({ project, index }) {
   const tech = Array.isArray(project.tech_stack) ? project.tech_stack : []
+  const monogram = project.title.split(/\s+/).filter(Boolean).slice(0, 3).map((part) => part[0]).join('').toUpperCase()
+  const normalize = (value) => (value || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+  const artwork = projectArtwork[normalize(project.slug)] || projectArtwork[normalize(project.title)] || (project.image_url
+    ? { src: project.image_url, alt: project.image_alt || `${project.title} project image`, className: '' }
+    : null)
   const codeLinks = [
-    project.github_url && {
-      href: project.github_url,
-      title: project.github_label === 'Mobile Code' ? 'Mobile' : project.github_label || 'Code',
-      subtitle: project.github_label === 'Mobile Code' ? 'Code' : null,
-    },
-    project.website_code_url && { href: project.website_code_url, title: 'Website', subtitle: 'Code' },
-    project.mobile_code_url && { href: project.mobile_code_url, title: 'Mobile & Wearwatch', subtitle: 'Code' },
+    project.github_url && { href: project.github_url, title: project.github_label === 'Mobile Code' ? 'Mobile code' : project.github_label || 'Source code' },
+    project.website_code_url && { href: project.website_code_url, title: 'Website code' },
+    project.mobile_code_url && { href: project.mobile_code_url, title: 'Mobile & Wearwatch code' },
   ].filter(Boolean)
 
-  return (
-    <article className="card group flex flex-col p-6 transition hover:-translate-y-1 hover:border-cyan-400/40">
-      <h3 className="text-lg font-semibold text-white group-hover:text-cyan-300">
-        {project.title}
-      </h3>
-      <p className="mt-3 flex-1 text-sm leading-relaxed text-slate-400">{project.summary}</p>
+  function trackSpotlight(event) {
+    const bounds = event.currentTarget.getBoundingClientRect()
+    event.currentTarget.style.setProperty('--spot-x', `${event.clientX - bounds.left}px`)
+    event.currentTarget.style.setProperty('--spot-y', `${event.clientY - bounds.top}px`)
+  }
 
-      {tech.length > 0 && (
-        <ul className="mt-5 flex flex-wrap gap-2" aria-label="Technologies used">
-          {tech.map((t) => (
-            <li key={t} className="chip">
-              {t}
-            </li>
-          ))}
-        </ul>
-      )}
-
-      <div className={`mt-6 grid gap-2 text-sm font-medium ${codeLinks.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
-        {codeLinks.map((link) => (
-          <a
-            key={link.href}
-            href={link.href}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex min-w-0 items-center gap-2 rounded-lg border border-slate-700/80 bg-slate-800/40 px-3 py-2.5 text-slate-300 transition hover:border-cyan-400/40 hover:bg-slate-800 hover:text-white"
-          >
-            <GithubIcon className="h-4 w-4 shrink-0 text-slate-400" />
-            <span className="min-w-0 leading-snug">
-              <span className="block">{link.title}</span>
-              {link.subtitle && <span className="block text-xs text-slate-400">{link.subtitle}</span>}
-            </span>
-          </a>
-        ))}
-        {project.live_url && (
-          <a
-            href={project.live_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1.5 text-slate-400 hover:text-white"
-          >
-            <ExternalIcon /> Live
-          </a>
-        )}
+  return <article className="project-row" aria-label={`Project ${index + 1}: ${project.title}`}>
+    <div className={`project-visual${artwork?.className ? ` ${artwork.className}` : ''}${artwork ? ' is-logo' : ''}`} onPointerMove={trackSpotlight}>
+      {artwork ? <img src={artwork.src} alt={artwork.alt} loading="lazy" /> : <div className="project-placeholder" aria-hidden="true"><span>{monogram}<i>.</i></span><small>{project.title} <b>/</b> PROJECT 0{index + 1}</small></div>}
+      <span className="project-number">0{index + 1}</span>
+    </div>
+    <div className="project-details">
+      <p className="eyebrow">Selected project <span>— 0{index + 1}</span></p>
+      <h3>{project.title}</h3>
+      <p className="project-summary">{project.summary}</p>
+      {tech.length > 0 && <ul className="project-tech" aria-label="Technologies used">{tech.map((item) => <li key={item}>{item}</li>)}</ul>}
+      <div className="project-links">
+        {codeLinks.map((link) => <a key={link.href} href={link.href} target="_blank" rel="noopener noreferrer"><GithubIcon />{link.title}<span aria-hidden="true">↗</span></a>)}
+        {project.live_url && <a href={project.live_url} target="_blank" rel="noopener noreferrer"><ExternalIcon />Live project<span aria-hidden="true">↗</span></a>}
       </div>
-    </article>
-  )
+    </div>
+  </article>
 }
 
-export default function Projects({ projects, loading, usingFallback }) {
-  return (
-    <section id="projects" className="border-y border-slate-800/70 bg-slate-900/30">
-      <div className="mx-auto max-w-6xl px-6 py-12 sm:py-14">
-        <SectionHeading
-          eyebrow="03. Previous Projects"
-          title="Previous Projects"
-        />
+export default function Projects({ projects = [], loading }) {
+  const [activeIndex, setActiveIndex] = useState(() => Math.max(0, projects.findIndex((project) => (project.slug || project.title || '').toLowerCase().includes('carewatch'))))
+  const [isPaused, setIsPaused] = useState(false)
+  const stageRef = useRef(null)
+  const touchStart = useRef(null)
+  const active = projects.length ? activeIndex % projects.length : 0
 
-        {loading ? (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            <SkeletonProject />
-            <SkeletonProject />
-            <SkeletonProject />
-          </div>
-        ) : projects.length === 0 ? (
-          <p className="text-slate-500">More projects coming soon.</p>
-        ) : (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {projects.map((p) => (
-              <ProjectCard key={p.id} project={p} />
-            ))}
-          </div>
-        )}
+  useEffect(() => setActiveIndex((index) => projects.length ? index % projects.length : 0), [projects.length])
 
-      </div>
-    </section>
-  )
+  const goTo = useCallback((index) => {
+    if (!projects.length) return
+    const next = (index + projects.length) % projects.length
+    if (next === active) return
+    setActiveIndex(next)
+  }, [active, projects.length])
+
+  useEffect(() => {
+    if (projects.length < 2 || isPaused || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return undefined
+    const timer = window.setInterval(() => {
+      if (!document.hidden) setActiveIndex((index) => (index + 1) % projects.length)
+    }, 5000)
+    return () => window.clearInterval(timer)
+  }, [isPaused, projects.length])
+
+  function handleKeyDown(event) {
+    if (event.key === 'ArrowLeft') { event.preventDefault(); goTo(active - 1) }
+    if (event.key === 'ArrowRight') { event.preventDefault(); goTo(active + 1) }
+  }
+
+  function handleTouchStart(event) {
+    touchStart.current = event.touches[0]?.clientX ?? null
+  }
+
+  function handleTouchEnd(event) {
+    if (touchStart.current === null) return
+    const distance = event.changedTouches[0].clientX - touchStart.current
+    if (Math.abs(distance) > 48) goTo(active + (distance < 0 ? 1 : -1))
+    touchStart.current = null
+  }
+
+  return <section id="projects" className="projects-section">
+    <div className="section-wrap">
+      <div className="section-kicker"><span>03 / SELECTED WORK</span><span>Built to solve real needs</span></div>
+      <div className="projects-heading"><SectionHeading eyebrow="Projects" title="Previous projects." /><span className="project-count">{String(projects.length).padStart(2, '0')} / WORKS</span></div>
+      {loading ? <div className="projects-list"><SkeletonProject /></div> : projects.length === 0 ? <p className="empty-projects">More projects coming soon.</p> : <div className="project-carousel" onFocus={() => setIsPaused(true)} onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setIsPaused(false) }}>
+        <div ref={stageRef} className="carousel-stage" role="region" aria-roledescription="carousel" aria-label="Previous projects" tabIndex={0} onKeyDown={handleKeyDown} onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+          <Project key={projects[active].id || projects[active].slug || projects[active].title} project={projects[active]} index={active} />
+        </div>
+        <div className="carousel-controls" aria-label="Project carousel controls">
+          <div className="carousel-position"><span>{String(active + 1).padStart(2, '0')}</span><i /><small>{String(projects.length).padStart(2, '0')} PROJECTS</small></div>
+          <div className="carousel-dots" role="group" aria-label="Choose a project">{projects.map((project, index) => <button key={project.id || project.slug || project.title} type="button" className={index === active ? 'is-current' : ''} aria-label={`Show project ${index + 1}: ${project.title}`} aria-current={index === active ? 'true' : undefined} onClick={() => goTo(index)} />)}</div>
+          <div className="carousel-arrows">
+            <button type="button" aria-label="Previous project" onClick={() => goTo(active - 1)}>←</button>
+            <button type="button" aria-label="Next project" onClick={() => goTo(active + 1)}>→</button>
+          </div>
+        </div>
+        <p className="swipe-hint" aria-hidden="true"><span>Swipe</span><b>↔</b></p>
+      </div>}
+    </div>
+  </section>
 }
