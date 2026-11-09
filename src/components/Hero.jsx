@@ -1,10 +1,7 @@
-import { useState } from 'react'
 import { profile } from '../config.js'
 import { GithubIcon, LinkedinIcon } from './Icons.jsx'
 
 export default function Hero({ portraitUrl = '/john-lloyd-melu.png' }) {
-  const [resumeNotice, setResumeNotice] = useState('')
-
   return (
     <section id="home" className="hero section-wrap">
       <div className="hero-layout">
@@ -17,10 +14,9 @@ export default function Hero({ portraitUrl = '/john-lloyd-melu.png' }) {
           <div className="hero-bottom">
             <p className="hero-intro">{profile.tagline}</p>
             <div className="hero-actions">
-              <button type="button" className="resume-button" data-magnetic title="Resume PDF coming soon" onClick={() => setResumeNotice('Resume PDF is coming soon.')}><span aria-hidden="true">↗</span>Resume</button>
+              <a className="resume-button" data-magnetic href="/resume.pdf" target="_blank" rel="noopener noreferrer" title="Open resume PDF in a new tab"><span aria-hidden="true">↗</span>Resume</a>
               {profile.github && <a href={profile.github} className="social-button" data-magnetic target="_blank" rel="noopener noreferrer" aria-label="GitHub" title="GitHub"><GithubIcon /></a>}
               {profile.linkedin && <a href={profile.linkedin} className="social-button" data-magnetic target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" title="LinkedIn"><LinkedinIcon /></a>}
-              <span className="resume-note" role="status" aria-live="polite">{resumeNotice}</span>
             </div>
           </div>
         </div>
