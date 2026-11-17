@@ -282,6 +282,7 @@ on conflict (slug) do update set
   sort_order = excluded.sort_order;
 
 delete from public.skills where name in ('Tailwind CSS', 'Vercel', 'Node.js');
+delete from public.skills where name = 'REST APIs';
 
 insert into public.skills (name, category, level, icon, published, sort_order)
 values
@@ -297,7 +298,6 @@ values
   ('HTML & CSS',        'Frontend',        92, 'html5', true, 3),
   ('PostgreSQL',        'Backend',         80, 'postgresql', true, 1),
   ('Supabase',          'Backend',         82, 'supabase', true, 2),
-  ('REST APIs',         'Backend',         85, '', true, 3),
   ('Git & GitHub',      'DevOps & Tools',  88, 'github', true, 0),
   ('Linux',             'DevOps & Tools',  75, 'linux', true, 2),
   ('Networking Basics', 'DevOps & Tools',  72, '', true, 3)
