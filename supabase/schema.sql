@@ -65,6 +65,20 @@ create table if not exists public.admin_login_attempts (
   updated_at timestamptz not null default now()
 );
 
+-- Anonymous outbound link analytics. No IP address or visitor identity is stored.
+create table if not exists public.link_clicks (
+  id uuid primary key default gen_random_uuid(),
+  destination_url text not null check (char_length(destination_url) <= 1000),
+  destination_domain text not null check (char_length(destination_domain) <= 255),
+  link_label text check (link_label is null or char_length(link_label) <= 120),
+  referrer_domain text check (referrer_domain is null or char_length(referrer_domain) <= 255),
+  browser text check (browser is null or char_length(browser) <= 30),
+  device text check (device is null or char_length(device) <= 30),
+  clicked_at timestamptz not null default now()
+);
+create index if not exists link_clicks_clicked_at_idx on public.link_clicks (clicked_at desc);
+create index if not exists link_clicks_destination_domain_idx on public.link_clicks (destination_domain);
+
 insert into public.site_settings (id, portrait_url)
 values (true, '/john-lloyd-melu.png')
 on conflict (id) do nothing;
@@ -103,6 +117,7 @@ create trigger skills_set_updated_at
 -- ---------------------------------------------------------------------
 alter table public.projects enable row level security;
 alter table public.skills   enable row level security;
+alter table public.link_clicks enable row level security;
 
 -- Start from zero privileges for API roles, then grant public read and
 -- authenticated writes protected by the admin-only RLS policies below.
@@ -116,6 +131,17 @@ grant select on public.projects to anon, authenticated;
 grant select on public.skills   to anon, authenticated;
 grant select on public.site_settings to anon, authenticated;
 grant insert, update, delete on public.projects, public.skills, public.site_settings to authenticated;
+revoke all on public.link_clicks from public, anon, authenticated;
+grant insert on public.link_clicks to anon, authenticated;
+grant select on public.link_clicks to authenticated;
+
+drop policy if exists "Visitors can record link clicks" on public.link_clicks;
+create policy "Visitors can record link clicks" on public.link_clicks
+  for insert to anon, authenticated with check (true);
+drop policy if exists "Portfolio admin reads link clicks" on public.link_clicks;
+create policy "Portfolio admin reads link clicks" on public.link_clicks
+  for select to authenticated
+  using (lower(auth.jwt() ->> 'email') = 'johnlloydmelu2004@gmail.com');
 
 -- Read-only policies: only published rows are visible.
 drop policy if exists "Public can read published projects" on public.projects;

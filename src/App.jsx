@@ -24,6 +24,36 @@ export default function App() {
       .then(({ data }) => { if (data?.portrait_url) setPortraitUrl(data.portrait_url) })
   }, [])
 
+  // Record outbound clicks without delaying navigation. Only coarse browser and
+  // referrer details are stored; visitor identity and IP addresses are not.
+  useEffect(() => {
+    if (!supabase) return undefined
+    const recordLinkClick = (event) => {
+      const anchor = event.target.closest?.('a[href]')
+      if (!anchor) return
+      let destination
+      try { destination = new URL(anchor.href, window.location.href) } catch { return }
+      if (!['http:', 'https:'].includes(destination.protocol)) return
+      const current = new URL(window.location.href)
+      if (destination.origin === current.origin && !destination.pathname.toLowerCase().endsWith('.pdf')) return
+      const ua = navigator.userAgent || ''
+      const browser = /Edg\//.test(ua) ? 'Edge' : /Firefox\//.test(ua) ? 'Firefox' : /Chrome\//.test(ua) ? 'Chrome' : /Safari\//.test(ua) ? 'Safari' : 'Other'
+      const device = /tablet|ipad/i.test(ua) ? 'Tablet' : /mobile|android|iphone/i.test(ua) ? 'Mobile' : 'Desktop'
+      const referrerDomain = document.referrer ? (() => { try { return new URL(document.referrer).hostname } catch { return null } })() : null
+      const linkLabel = (anchor.getAttribute('aria-label') || anchor.innerText || anchor.title || destination.hostname).trim().slice(0, 120)
+      supabase.from('link_clicks').insert({
+        destination_url: destination.href.slice(0, 1000),
+        destination_domain: destination.hostname.slice(0, 255),
+        link_label: linkLabel,
+        referrer_domain: referrerDomain,
+        browser,
+        device,
+      }).then(({ error }) => { if (error) console.warn('Could not record link click:', error.message) })
+    }
+    document.addEventListener('click', recordLinkClick, true)
+    return () => document.removeEventListener('click', recordLinkClick, true)
+  }, [])
+
   useEffect(() => {
     const lenis = new Lenis({
       autoRaf: true,

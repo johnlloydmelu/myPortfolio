@@ -30,6 +30,8 @@ export default function AdminAccess({ onPortraitChange }) {
   const [tab, setTab] = useState('projects')
   const [projects, setProjects] = useState([])
   const [skills, setSkills] = useState([])
+  const [clicks, setClicks] = useState([])
+  const [clickTotal, setClickTotal] = useState(0)
   const [projectEdit, setProjectEdit] = useState(null)
   const [skillEdit, setSkillEdit] = useState(null)
   const [notice, setNotice] = useState('')
@@ -87,6 +89,21 @@ export default function AdminAccess({ onPortraitChange }) {
     })
     return () => { cancelled = true }
   }, [open, session])
+
+  useEffect(() => {
+    if (!open || !session || tab !== 'visitor' || !supabase) return
+    let cancelled = false
+    Promise.all([
+      supabase.from('link_clicks').select('*').order('clicked_at', { ascending: false }).limit(500),
+      supabase.from('link_clicks').select('*', { count: 'exact', head: true }),
+    ]).then(([{ data, error: clickError }, { count }]) => {
+        if (cancelled) return
+        if (clickError) setError(clickError.message)
+        else setClicks(data || [])
+        setClickTotal(count || 0)
+      })
+    return () => { cancelled = true }
+  }, [open, session, tab])
 
   const signIn = async (event) => {
     event.preventDefault()
@@ -290,7 +307,7 @@ export default function AdminAccess({ onPortraitChange }) {
         ) : (
           <div className="p-5 sm:p-7">
             <div className="mb-6 flex flex-wrap gap-2">
-              {['projects', 'tech stack', 'portrait'].map((item) => (
+              {['projects', 'tech stack', 'portrait', 'visitor'].map((item) => (
                 <button key={item} type="button" onClick={() => { setTab(item); setError(''); setNotice('') }} className={`admin-tab rounded-lg px-4 py-2 text-sm font-medium capitalize transition ${tab === item ? 'is-active' : ''}`}>{item}</button>
               ))}
             </div>
@@ -348,6 +365,23 @@ export default function AdminAccess({ onPortraitChange }) {
                 <div><h3 className="font-semibold text-white">Profile picture</h3><p className="mt-1 text-sm text-slate-400">Upload a portrait image to replace the one shown in the hero section.</p></div>
                 <label className={labelClass}>Choose image<input type="file" accept="image/*" onChange={uploadPortrait} className="mt-2 block w-full text-sm text-slate-300 file:mr-3 file:rounded-lg file:border-0 file:bg-slate-800 file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-slate-700" /></label>
                 {busy && <p className="text-sm admin-accent-text">Uploading portrait…</p>}
+              </div>
+            )}
+
+            {tab === 'visitor' && (
+              <div className="space-y-5">
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-4"><p className="text-sm text-slate-400">Total tracked clicks</p><p className="mt-2 text-2xl font-bold text-white">{clickTotal}</p><p className="mt-1 text-xs text-slate-500">Showing latest {Math.min(clicks.length, 500)} events</p></div>
+                  <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-4"><p className="text-sm text-slate-400">Top destination</p><p className="mt-2 truncate text-lg font-semibold text-white">{Object.entries(clicks.reduce((counts, click) => ({ ...counts, [click.destination_domain]: (counts[click.destination_domain] || 0) + 1 }), {})).sort((a, b) => b[1] - a[1])[0]?.[0] || '—'}</p></div>
+                  <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-4"><p className="text-sm text-slate-400">Referrals known</p><p className="mt-2 text-2xl font-bold text-white">{clicks.filter((click) => click.referrer_domain).length}</p><p className="mt-1 text-xs text-slate-500">Browsers may hide referral details</p></div>
+                </div>
+                <div className="overflow-x-auto rounded-xl border border-slate-800">
+                  <table className="w-full min-w-[720px] text-left text-sm">
+                    <thead className="bg-slate-950/60 text-xs uppercase tracking-wide text-slate-500"><tr><th className="px-4 py-3">Clicked link</th><th className="px-4 py-3">Destination</th><th className="px-4 py-3">Came from</th><th className="px-4 py-3">Browser / device</th><th className="px-4 py-3">Time</th></tr></thead>
+                    <tbody className="divide-y divide-slate-800">{clicks.map((click) => <tr key={click.id} className="text-slate-300"><td className="px-4 py-3">{click.link_label || 'Link'}</td><td className="max-w-[220px] truncate px-4 py-3" title={click.destination_url}>{click.destination_domain}</td><td className="px-4 py-3">{click.referrer_domain || 'Direct / hidden'}</td><td className="px-4 py-3">{click.browser || '—'} / {click.device || '—'}</td><td className="whitespace-nowrap px-4 py-3">{new Date(click.clicked_at).toLocaleString()}</td></tr>)}</tbody>
+                  </table>
+                  {!clicks.length && <p className="px-4 py-8 text-center text-sm text-slate-500">No link clicks recorded yet.</p>}
+                </div>
               </div>
             )}
           </div>
